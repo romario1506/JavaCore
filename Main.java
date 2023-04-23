@@ -1,43 +1,60 @@
-package lesson3.HW3;
+package lesson4.HW4;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.TreeSet;
 
 public class Main {
     public static void main(String[] args) {
 
         System.out.println(" Задание №1 ");
-        ArrayMethodsGeneric<Integer> gen1 = new ArrayMethodsGeneric<>(3, 0, 1, 7, 9);
-        gen1.printArray();
-        gen1.swapArrayElements(1, 4);
-        gen1.printArray();
 
-        ArrayMethodsGeneric<String> gen2 = new ArrayMethodsGeneric<>("число 1", "число 2", "число 3", "число 4", "число 5");
-        gen2.printArray();
-        gen2.swapArrayElements(1, 5);
-        gen2.printArray();
+        /*Запускаем массив*/
+        String[] strArray = {"один", "двадцать", "три", "два", "три", "четыре", "пять", "пять", "два", "одиннадцать", "ноль", "пять", "одиннадцать", "пять"};
 
-        System.out.println(" _________________________________________________");
-        System.out.println(" Задание №2");
-        Box<Apple> appleBox = new Box< >(new ArrayList<>(Arrays.asList(new Apple(), new Apple(), new Apple(), new Apple())));
-        Box<Orange> orangeBox = new Box<>(new ArrayList<>(Arrays.asList(new Orange(), new Orange(), new Orange())));
-        System.out.println("Вес коробки с яблочками: " + appleBox.getWeight());
-        System.out.println("Вес коробки с апельсинками: " + orangeBox.getWeight());
-        System.out.println("Вес коробок с апельсинками и яблочками одинаковый?: " + orangeBox.compare(appleBox));
+        /* Выводим количество дубликатов/уникальных */
+        printNumberDuplicateStrings(strArray);
+        printUniqueStrings(strArray);
+        System.out.println("-------------------------------------");
+        System.out.println(" Задание №2 ");
+        PhoneDirectory directory = new PhoneDirectory();
+        /* создаем контакты*/
+        directory.add("Абрамова","+79781813258");
+        directory.add("Борисов","+78912113100");
+        directory.add("Борисов","+78912113102");
+        directory.add("Вичков","+79783211241");
+        directory.add("Градова","+79783211243");
 
-        orangeBox.addFruit(new Orange());
-        System.out.println("Добавили в коробку одну апельсинку, вес стал: " + orangeBox.getWeight());
+        /*создаем дубликат*/
+        directory.add("Вичков","+79783211241");
+        /* запрос по фамилии*/
+        directory.printPhonesBySurname("Градова");
+        directory.printPhonesBySurname("Борисов");
 
-        appleBox.addFruit(new Apple());
-        appleBox.addFruit(new Apple());
-        System.out.println("Добавим в коробку пару яблочек, вес получился: " + appleBox.getWeight());
-        System.out.println(" После добавки фруктов вес коробок с апельсинками и яблочками  стал одинаковый?: " + orangeBox.compare(appleBox));
+        /* вывод всего справочника*/
+        directory.printPhoneDirectory();
+        /* вводим несуществующий контакт*/
+        directory.printPhonesBySurname("Обрамова");
+    }
 
-        Box<Orange> anotherOrangeBox = new Box<>(new ArrayList<>(List.of(new Orange())));
-        System.out.println("Вес второй коробки с апельсинками: " + anotherOrangeBox.getWeight());
-        orangeBox.pourAllFruits(anotherOrangeBox);
-        System.out.println("Вес коробки (пустая):" + orangeBox.getWeight());
-        System.out.println("Вес второй  коробки с апельсинками после заполнения : " + anotherOrangeBox.getWeight());
+
+    public static void printUniqueStrings(String[] strArray) {
+        TreeSet<String> strHashSet = new TreeSet<>(Arrays.asList(strArray));
+        System.out.println(strHashSet);
+    }
+
+
+    public static void printNumberDuplicateStrings(String[] strArray) {
+        ArrayList<String> arrayStrList = new ArrayList<>(Arrays.asList(strArray));
+        Collections.sort(arrayStrList);
+        System.out.println(" Определяем дубликаты для массива : " + arrayStrList + ":");
+        String checkingWord = "";
+        for (String strElement: arrayStrList) {
+            if (!checkingWord.equals(strElement)) {
+                checkingWord = strElement;
+                System.out.println(strElement + " всречается " + Collections.frequency(arrayStrList, strElement) + " раз");
+            }
+        }
     }
 }
