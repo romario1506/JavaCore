@@ -1,47 +1,70 @@
-package lesson7.HW7;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.*;
+package lesson8.HW8;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.List;
+import java.io.InputStreamReader;
 
 public class Main {
-    public static final String API_KEY_PARAM = "apikey";
-    public static final String API_KEY = "L8jY9hzHqmGxBxDAAgmEUYztLuVwkgG5";
-    public static final String CURRENT_TOWN_KEY = "295212";
-    public static final String WEATHER_URL = "https://dataservice.accuweather.com/currentconditions/v1/" + CURRENT_TOWN_KEY;
+    private static final WeatherClient WEATHER_CLIENT = new WeatherClient();
+    private static final WeatherInfoRepository WEATHER_INFO_REPOSITORY = new WeatherInfoRepository();
+
 
     public static void main(String[] args) throws IOException {
-        HttpUrl.Builder urlBuilder = HttpUrl.parse(WEATHER_URL).newBuilder();
-        urlBuilder.addQueryParameter(API_KEY_PARAM, API_KEY);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            while (true) {
+                System.out.println("Выберите,пожалуйста:");
+                System.out.println("1. Info  погоды ");
+                System.out.println("2. Получить информацию о погоде");
 
-        HttpUrl httpUrl = urlBuilder.build();
+                String command = reader.readLine();
+                if ("exit".equalsIgnoreCase(command)) {
+                    System.exit(0);
+                } else {
+                    if ("1".equalsIgnoreCase(command)) {
+                        fetchFlow(reader);
+                    } else if ("2".equalsIgnoreCase(command)) {
+                        getFlow(reader);
+                    } else {
+                        System.out.println("Ошибка локации '" + command + "' Попробуйте,пожалуйста снова");
+                    }
+                }
+            }
+        }
+    }
 
-        Request.Builder requestBuilder = new Request.Builder();
+    private static void fetchFlow(BufferedReader reader) throws IOException {
+        System.out.println("Напишите название города");
+        int cityKey = getCityKey(reader);
+        WeatherInfoDTO weatherInfoDTO = WEATHER_CLIENT.getCity(cityKey);
+        WEATHER_INFO_REPOSITORY.updateWeatherInfo(weatherInfoDTO);
+    }
 
-        Request request = requestBuilder
-                .get()
-                .url(httpUrl)
-                .build();
+    private static void getFlow(BufferedReader reader) throws IOException {
+        System.out.println("Напишите название города для получения прогноза ");
+        int cityKey = getCityKey(reader);
+        WeatherInfoDTO weatherInfoDTO = WEATHER_INFO_REPOSITORY.getWeatherInfo(cityKey);
+        if (weatherInfoDTO == null) {
+            System.out.println("Weather info by city key '" + cityKey + "' not found");
+        } else {
+            System.out.println("Weather info by city key: " + weatherInfoDTO);
+        }
+    }
 
-        OkHttpClient client = new OkHttpClient();
-
-        Call call = client.newCall(request);
-
-        Response response = call.execute();
-
-        String responseBody = response.body().string();
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-
-        List<Local> cities = objectMapper.readValue(responseBody, new TypeReference<List<Local>>() {
-        });
-
-        Local city = cities.get(0);
-
-        System.out.println(city);
+    private static int getCityKey(BufferedReader reader) throws IOException {
+        int cityKey;
+        while (true) {
+            String command = reader.readLine();
+            if ("exit".equalsIgnoreCase(command)) {
+                System.exit(0);
+            } else {
+                try {
+                    cityKey = Integer.parseInt(command);
+                    break;
+                } catch (NumberFormatException e) {
+                    System.out.println("Ошибка локации '" + command + "' пожалуйста, попробуйте  снова");
+                }
+            }
+        }
+        return cityKey;
     }
 }
