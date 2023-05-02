@@ -1,70 +1,79 @@
-package lesson8.HW8;
+package lesson9.HW9;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
-    private static final WeatherClient WEATHER_CLIENT = new WeatherClient();
-    private static final WeatherInfoRepository WEATHER_INFO_REPOSITORY = new WeatherInfoRepository();
+    public static void main(String[] args) {
+        Course course1 = new CourseImpl("Математика");
+        Course course2 = new CourseImpl("Психология");
+        Course course3 = new CourseImpl("Робототехника");
+        Course course4 = new CourseImpl("Физика");
+        Course course5 = new CourseImpl("Биология");
 
+        List<Student> students = Arrays.asList(
+                new StudentImpl("Самуилова", Arrays.asList(course1, course3,course4)),
+                new StudentImpl("Петров", Arrays.asList(course1,course2, course3,course4)),
+                new StudentImpl("Валецкий", Arrays.asList(course1, course2)),
+                new StudentImpl("Крымская", Arrays.asList(course4)),
+                new StudentImpl("Шабан", Arrays.asList(course1)),
+                new StudentImpl("Хотун", Arrays.asList(course5)),
+                new StudentImpl("Боридько", Arrays.asList( course3))
+        );
 
-    public static void main(String[] args) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-            while (true) {
-                System.out.println("Выберите,пожалуйста:");
-                System.out.println("1. Info  погоды ");
-                System.out.println("2. Получить информацию о погоде");
+        System.out.println(" Студенты посещают курсы:"+ getUniqueCourses(students));
+        System.out.println(" Самые любознательные студенты:"+ getInquisitiveStudent(students));
 
-                String command = reader.readLine();
-                if ("exit".equalsIgnoreCase(command)) {
-                    System.exit(0);
-                } else {
-                    if ("1".equalsIgnoreCase(command)) {
-                        fetchFlow(reader);
-                    } else if ("2".equalsIgnoreCase(command)) {
-                        getFlow(reader);
-                    } else {
-                        System.out.println("Ошибка локации '" + command + "' Попробуйте,пожалуйста снова");
-                    }
-                }
-            }
-        }
+        System.out.println(" Математику посещают:" +getStudentsByCourses(students, course1));
+        System.out.println(" Психологию посещают:" +getStudentsByCourses(students, course2));
+        System.out.println(" Робототехнику посещают:" +getStudentsByCourses(students, course3));
+        System.out.println(" Физику посещают:" + getStudentsByCourses(students, course4));
+        System.out.println(" Биологию посещают:" + getStudentsByCourses(students, course5));
     }
 
-    private static void fetchFlow(BufferedReader reader) throws IOException {
-        System.out.println("Напишите название города");
-        int cityKey = getCityKey(reader);
-        WeatherInfoDTO weatherInfoDTO = WEATHER_CLIENT.getCity(cityKey);
-        WEATHER_INFO_REPOSITORY.updateWeatherInfo(weatherInfoDTO);
+    public static List<Course> getUniqueCourses(List<Student> students) {
+        students = students == null ? new ArrayList<>() : students;
+
+        return students.stream()
+                .filter(Objects::nonNull)
+                .map(Student::getAllCourses)
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
-    private static void getFlow(BufferedReader reader) throws IOException {
-        System.out.println("Напишите название города для получения прогноза ");
-        int cityKey = getCityKey(reader);
-        WeatherInfoDTO weatherInfoDTO = WEATHER_INFO_REPOSITORY.getWeatherInfo(cityKey);
-        if (weatherInfoDTO == null) {
-            System.out.println("Weather info by city key '" + cityKey + "' not found");
-        } else {
-            System.out.println("Weather info by city key: " + weatherInfoDTO);
-        }
+    public static List<Student> getInquisitiveStudent(List<Student> students) {
+        students = students == null ? new ArrayList<>() : students;
+
+        return students.stream()
+                .filter(Objects::nonNull)
+                .sorted((o1, o2) -> {
+                    List<Course> c1 = o1.getAllCourses();
+                    List<Course> c2 = o2.getAllCourses();
+                    return Integer.compare(
+                            c2 == null ? 0 : c2.size(),
+                            c1 == null ? 0 : c1.size()
+                    );
+                })
+                .limit(3)
+                .collect(Collectors.toList());
     }
 
-    private static int getCityKey(BufferedReader reader) throws IOException {
-        int cityKey;
-        while (true) {
-            String command = reader.readLine();
-            if ("exit".equalsIgnoreCase(command)) {
-                System.exit(0);
-            } else {
-                try {
-                    cityKey = Integer.parseInt(command);
-                    break;
-                } catch (NumberFormatException e) {
-                    System.out.println("Ошибка локации '" + command + "' пожалуйста, попробуйте  снова");
-                }
-            }
+    public static List<Student> getStudentsByCourses(List<Student> students, Course course) {
+        if (course == null) {
+            return new ArrayList<>();
         }
-        return cityKey;
+
+        students = students == null ? new ArrayList<>() : students;
+
+        return students.stream()
+                .filter(Objects::nonNull)
+                .filter(student -> {
+                    List<Course> courses = student.getAllCourses();
+                    courses = courses == null ? Collections.emptyList() : courses;
+                    return courses.contains(course);
+                })
+                .collect(Collectors.toList());
     }
 }
